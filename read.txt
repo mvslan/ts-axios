@@ -1,0 +1,116 @@
+this保存的是函数创建时的this值（词法作用域？）
+
+需求分析：
+1，在浏览器使用XMLHttpRequest进行通讯
+2，支持Promise API
+3，支持请求和响应的拦截
+4，支持请求数据和响应数据的转换
+5，支持请求的取消（服务器收到请求之前取消）
+6，JSON数据的自动转换
+7，客户端防止XSRF（跨站请求伪造）
+
+
+一，请求get：
+get参数params分析：
+1，数组：
+    axios({
+        method:'get',
+        url:'/base/get',
+        params:{
+            foo:['bar','baz']
+        }
+    })
+    最终请求：'/base/get?foo[]=bar&foo[]=baz'
+
+2，对象
+    axios.get("/base/get", {
+      params: {
+        obj: {
+          foo: "bar",
+        },
+      },
+    });
+    最终请求：base/get?obj=%7B%22foo%22:%22bar%22%7D
+    数据json之后encode的结果
+
+3，日期
+const date = new Date();
+    axios.get("/base/get", {
+      params: {
+        date,
+      },
+    });
+    最终请求：base/get?date=2020-11-01T07:55:59.408Z
+    date.toISOString()的结果
+
+4，特殊字符
+    axios.get("/base/get", {
+      params: {
+        str: "@:$, ",
+      },
+    });
+    最终请求：base/get?str=%40:$,+
+    空格转成+
+
+5，空值忽略(null和undefined)
+     axios.get("/base/get", {
+      params: {
+        str: "fo",
+        str2: null,
+      },
+    });
+    base/get?str=fo
+
+6，丢弃url中的hash标记
+ axios.get("/base/get/#hash", {
+      params: {
+        str: "fo",
+      },
+    });
+  }, []);
+base/get/?str=fo
+
+7，保留url中已存在的参数
+ axios.get("/base/get?fn=bar", {
+      params: {
+        str: "fo",
+      },
+    });
+    base/get?fn=bar&str=fo
+
+二，请求post：
+post首先判断data数据类型
+然后处理请求header
+如果没有配置responseType: 'json',那么返回的就是字符串
+header从XMLHttpRequest中获取的是字符串，需要处理成object
+
+三，错误处理
+网络错误 
+超时错误
+为了进一步处理错误，创建error.ts
+
+
+四，扩展接口
+axios.request(config)
+axios.get(url[,config])
+axios.delete(url[,config])
+axios.head(url[,config])
+axios.options(url[,config])
+axios.post(url[,data[,config]])
+axios.put(url[,data[,config]])
+axios.patch(url[,data[,config]])
+
+新增core文件夹，Axios.ts,原来的axios文件改成了dispatchRequest，xhr.ts也移入
+url变成可选，使用的时候url!,这么用
+混合对象:把get等方法全部放到request上去
+函数重载：由于request第一个参数可以是url，也可以是config，所以这个函数修改修改
+
+接口里面对于类型整新花样--暂时还不懂
+
+五，拦截器
+请求之前和响应之后做拦截
+可以添加多个
+删除拦截器
+请求是在啥时候发送的呢？？？
+
+六，合并配置

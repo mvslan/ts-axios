@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      const selfCall = function(context, ...args) {
+        let func = this // 要执行的函数
+        context || (context = window) // 函数执行的环境
+        if (typeof func !== 'function')
+          // 怎么获取父元素的名字
+          throw new TypeError('this is 11111 not function')
+        let caller = Symbol('caller')
+        context[caller] = func
+        let res = context[caller](...args)
+        delete context[caller]
+        return res
+      }
+
+      Function.prototype.call = selfCall
+
+      var id = 'Global'
+
+      function fun1() {
+        // setTimeout中使用普通函数
+        // setTimeout(function() {
+        //   console.log(this.id)
+        // }, 2000)
+        function fn() {
+          console.log(this.id)
+        }
+        fn()
+      }
+
+      function fun2() {
+        // setTimeout中使用箭头函数
+        // setTimeout(() => {
+        //   console.log(this.id)
+        // }, 2000)
+        const fn = () => {
+          console.log(this.id)
+        }
+        fn()
+      }
+
+      const obj = { id: 'Obj', fun1: fun1, fun2: fun2 }
+      obj.fun1()
+      obj.fun2()
+    </script>
+  </body>
+</html>
